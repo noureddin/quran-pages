@@ -1,0 +1,13 @@
+{ "light":
+  { "word_hex": "#FFFFFF"
+  , "word_rgb": [255,255,255]
+  , "margin_hex": "#FFFDD8"
+  , "margin_rgb": [255,253,216]
+  }
+, "dark":
+  { "word_hex": "#000000"
+  , "word_rgb": [0,0,0]
+  , "margin_hex": "#272500"
+  , "margin_rgb": [39,37,0]
+  }
+}

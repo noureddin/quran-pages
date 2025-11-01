@@ -1,0 +1,26 @@
+The pauses.json file contains the pauses (waqfs and/or gaps) in the Dar-ul-Ma‘refa
+Muṣħaf (the muṣħaf whose pages' images are included in this directory).
+
+The morepauses.json file provides more break points for the really long phrases
+that our Muṣħaf doesn't break (usually more than two lines).
+
+These additional pauses are based on muṣħafs of Maghreb and Turkey and Indo-Pak,
+but not every waqf in them is taken (Turkey and Indo-Pak are very similar in
+their waqfs), but almost all waqfs existing in both Eastern (Turkey & Indo-Pak)
+and Western (Maghreb) muṣħafs are taken.
+
+Maghreb:
+- LY: https://archive.org/details/MushafQal467964694669669oonLibya
+- DZ: https://archive.org/details/ALSHTTTTTTTTTTTTTTTTTTTTTARSH
+
+Turkey:
+- https://archive.org/details/Quran_Hussen
+- https://archive.org/details/musha34734734747f-nory
+
+Indo-Pak:
+- https://archive.org/details/AlQuran15LinesPakistaniPrintBlack
+- https://archive.org/details/15-lined-saudi
+
+It's still a work-in-progress.
+
+Current state: done till the end of Sura 4 (An-Nisā’), ie, pages 1-105.
