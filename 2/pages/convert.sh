@@ -10,7 +10,22 @@ if ! exiftool -ver &>/dev/null; then
   exit 1
 fi
 
-md() { mkdir -p "pages/$1" && cd "pages/$1"; }
+md() { mkdir -p "$1" && cd "$1"; }
+
+___jpeg() {  # remove metadata and compress slightly (images become about 90% in size)
+  (md "$3"
+  [ -s "$1.jpeg" ] || rm -f "$1.jpeg"  # if empty
+  [ -e "$1.jpeg" ] || {
+    # remove metadata, except the color profile (which is only 4KB, but might cause color issues?)
+    # then compress to jpeg twice (only twice to not alter the color quality noticeably)
+    exiftool -q -all= --ICC_Profile:all "$2$1.jpg" -o "$1...jpeg" &&
+    convert "$1...jpeg" "$1..jpeg" &&
+    convert "$1..jpeg" "$1.jpeg" &&
+    true; } &&
+    rm -f "$1...jpeg" "$1..jpeg" ||
+      goterror "$1.jpeg"
+  echo -n "$1"/;)  # auto `cd -` because of the subshell
+}
 
 ___webp() {  # remove metadata and compress to webp (images become about 50% in size)
   (md "$3"
@@ -28,6 +43,9 @@ ___webp() {  # remove metadata and compress to webp (images become about 50% in 
 
 # requires calling "_get" in "getpages.sh" first;
 # uncomment the line starting with "loop _get" there and run that script.
+
+_light_jpeg() { ___jpeg "$1" "" "776x1053"; }
+
 _light_webp() { ___webp "$1" "../776x1053/" "776x1053-webp"; }
 
 loop() {
@@ -52,6 +70,8 @@ haserror() { grep -q E "$t"; }
 goterror() { echo -n E >> "$t"; [ -n "$1" ] && rm -rf "$1"; }
 
 # set -x
+
+loop _light_jpeg $N
 
 loop _light_webp $N
 

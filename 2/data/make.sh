@@ -27,7 +27,7 @@ compress lines.json
 
 compress ayat.json
 
-compress lastwords.json
+compress lineends.json
 
 compress pauses.json
 

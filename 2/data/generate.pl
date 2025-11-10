@@ -60,32 +60,32 @@ if (newer_than ['numberofayat.json'] => ['ayat.json']) {
 
 # a word is the tuple [x,y,width,height].
 # words.json is an array of pages, where each page is an array of words.
-# lastwords.json is an array of pages, where each page is an array of words,
+# lineends.json is an array of pages, where each page is an array of words,
 #   each of which is the last word in its line.
 
-my $need_lastwords = newer_than ['lastwords.json']     => ['words.json'];
+my $need_lineends = newer_than ['lineends.json'] => ['words.json'];
 my $need_numwords  = newer_than ['numberofwords.json'] => ['words.json'];
 
 my $need_headers = newer_than ['headers.json', 'basmalaat.json']
                               => ['suarstarts.json', 'words.json'];
 # 'words' because calculating suar names (headers) depends on the number of words in a page
 
-if (!$need_headers && !$need_numwords && !$need_lastwords) { exit }
+if (!$need_headers && !$need_numwords && !$need_lineends) { exit }
 
 my @words;
 
-if ($need_lastwords || $need_numwords) {
+if ($need_lineends || $need_numwords) {
   print 'Reading words.json... ';
   @words = @{read_json 'words.json'};
   say 'done';
 }
 
 ################################################################################
-# generate lines.json from words.json
+# generate lineends.json from words.json
 
-if ($need_lastwords) {
-  print 'Writing lastwords.json... ';
-  my @lastwords;
+if ($need_lineends) {
+  print 'Writing lineends.json... ';
+  my @lineends;
   for my $_p (@words) {
     my $last;
     my @page;
@@ -99,9 +99,9 @@ if ($need_lastwords) {
       $last = $w;
     }
     push @page, $#$_p;  # the last word in page
-    push @lastwords, [@page];  # all the lines of the current page
+    push @lineends, [@page];  # all the lines of the current page
   }
-  write_json 'lastwords.json', \@lastwords;
+  write_json 'lineends.json', \@lineends;
   say 'done';
 }
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HOST='http://www.islamicbook.ws/2/'
+HOST='https://www.islamicbook.ws/2/'
 
 if ! convert --version &>/dev/null; then
   >&2 echo please install imagemagick
@@ -12,13 +12,13 @@ if ! wget --version &>/dev/null; then
   exit 1
 fi
 
-md() { mkdir -p "pages/$1" && cd "pages/$1"; }
+md() { mkdir -p "$1" && cd "$1"; }
 
 _get() {  # download mosħaf pages
   (md 776x1053
   [ -s "$1.jpg" ] || rm -f "$1.jpg"  # if empty
   [ -e "$1.jpg" ] || {
-    if wget -q "$HOST/$1.jpg"; then
+    if wget -U Mozilla/5.0 -q "$HOST/$1.jpg"; then
       if [ $1 -eq 1 ] || [ $1 -eq 2 ]; then
         mv $1.jpg _$1.jpg &&
         convert _$1.jpg -crop 776x1053+25+25 $1.jpg &&
@@ -103,7 +103,7 @@ t="$(mktemp)"
 haserror() { grep -q E "$t"; }
 goterror() { echo -n E >> "$t"; [ -n "$1" ] && rm -rf "$1"; }
 
-set -x
+# set -x
 
 # uncomment any of the following
 
