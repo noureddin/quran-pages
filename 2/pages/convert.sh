@@ -40,13 +40,28 @@ ___webp() {  # remove metadata and compress to webp (images become about 50% in 
       goterror "$1.webp"
   echo -n "$1"/;)  # auto `cd -` because of the subshell
 }
+ 
+___avif() {  # remove metadata and compress to avif (images become about 50% in size)
+  (md "$3"
+  [ -s "$1.avif" ] || rm -f "$1.avif"  # if empty
+  [ -e "$1.avif" ] || {
+    # remove metadata, except the color profile (which is only 4KB, but might cause color issues?)
+    # then compress to avif thrice
+    exiftool -q -all= --ICC_Profile:all "$2$1.jpg" -o "$1.jpg" &&
+    convert "$1.jpg" "$1...avif" &&
+    convert "$1...avif" "$1..avif" &&
+    convert "$1..avif" "$1.avif" &&
+    true; } &&
+    rm -f "$1.jpg" "$1...avif" "$1..avif" ||
+      goterror "$1.avif"
+  echo -n "$1"/;)  # auto `cd -` because of the subshell
+}
 
-# requires calling "_get" in "getpages.sh" first;
-# uncomment the line starting with "loop _get" there and run that script.
-
-_light_jpeg() { ___jpeg "$1" "" "776x1053"; }
+_light_jpeg() { ___jpeg "$1" "../776x1053/" "776x1053-jpeg"; }
 
 _light_webp() { ___webp "$1" "../776x1053/" "776x1053-webp"; }
+
+_light_avif() { ___avif "$1" "../776x1053/" "776x1053-avif"; }
 
 loop() {
   haserror && return
@@ -71,9 +86,16 @@ goterror() { echo -n E >> "$t"; [ -n "$1" ] && rm -rf "$1"; }
 
 # set -x
 
-loop _light_jpeg $N
+# this requires calling "_get" in "getpages.sh" first;
+# uncomment the line starting with "loop _get" there and run that script.
 
-loop _light_webp $N
+# then uncomment any of the following
+
+# loop _light_jpeg $N
+
+# loop _light_webp $N
+
+# loop _light_avif $N
 
 set +x
 rm -f "$t"  # don't comment or remove this line!

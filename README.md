@@ -17,13 +17,85 @@ thus a simple rectangle is almost always enough to perfectly contain a word.
 
 - `2/pages/convert.sh`: a Bash script using ImageMagick and `exiftool` to convert the JPG page images.
 
-- `2/pages/776x1053/`: only `1.jpeg` and `2.jpeg` (notice the `e` in `jpeg`).
+- `2/pages/776x1053-jpeg/`: only `1.jpeg` and `2.jpeg` (notice the `e` in `jpeg`).
   These two are included because the original have different dimensions.
-  The original JPGs are not included; fetch them from IslamicBook, or use `getpages.sh` if you need them.
+  The original JPGs are not included; fetch them from IslamicBook, or use `getpages.sh` to download the originals
+  (then you can run `convert.sh` with the `loop _light_jpeg $N` uncommented to compress them slightly).
 
 - `2/pages/776x1053-webp/`: all the pages' images (1 throught 604) in WebP format, which is half the size of the original JPEG images.
 
   Note: File names are NOT zero-padded; eg, the first page is at `2/pages/776x1053-webp/1.webp`.
+
+- `2/pages/776x1053-avif/`: all the pages' images in AVIF format, which is around 37% the size of the original JPEG images.
+
+### Fail safe!
+
+AVIF has good support in the latest browsers, but many browsers, applications, and web sites (even GitHub!) don't support it.
+
+WebP has a wider support, yet [Can I use](https://caniuse.com/webp) puts it at 94% global support, not significantly better than [AVIF's](https://caniuse.com/avif) 93%.
+
+So automatically try AVIF, then WebP, then JPEG.
+
+If you're using in plain HTML, use the [picture element](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/picture#the_type_attribute).
+
+If you're loading them with JavaScript, the best way I found is to rely on
+[Image's onerror](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/img#image_loading_errors),
+and retry with the next format.
+
+Example:
+
+```javascript
+const QuranPagesRoot = 'https://www.noureddin.dev/quran-pages/2/'
+
+const PageFormats = [
+   { ext:'.avif', dir:QuranPagesRoot+'pages/776x1053-avif/' },
+   { ext:'.webp', dir:QuranPagesRoot+'pages/776x1053-webp/' },
+   { ext:'.jpg',  dir:'https://www.islamicbook.ws/2/' },
+]
+// Note: dir: ends in slash, and ext: starts with a dot
+
+let page_fmt_idx = 0
+
+function next_format () {
+  if (page_fmt_idx >= PageFormats.length-1) { return false }
+  page_fmt_idx += 1
+  return true
+}
+
+function image_src (p) {
+   if (isNaN(p) || p < 1 || p > 604) {
+    throw `Invalid page number; expect a number between 1 and 604 inclusive; got '${p}'`
+  }
+   const { ext, dir } = PageFormats[page_fmt_idx]
+   return p < 3 && ext === '.jpg'
+      ? QuranPagesRoot + 'pages/776x1053-jpeg/' + p + '.jpeg'
+      : dir + p + ext
+}
+
+// then:
+
+function get_page_with_callback (p, callback) {
+  if (isNaN(p) || p < 1 || p > 604) {
+    throw `Invalid page number; expect a number between 1 and 604 inclusive; got '${p}'`
+  }
+  const page = new Image(W, H)
+  if (callback) { page.onload = (ev) => callback(page) }
+  page.onerror = () => {
+    if (next_format()) { page.src = image_src(p) }
+  }
+  page.src = image_src(p)
+  return page
+}
+
+// and if you prefer async/await or promises:
+
+async function get_page (p) {
+  return await new Promise((resolve, reject) => {
+    get_page_with_callback(p, (page) => resolve(page))
+  })
+}
+```
+
 
 ## Included primary data
 
