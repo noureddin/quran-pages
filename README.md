@@ -36,7 +36,7 @@ WebP has a wider support, yet [Can I use](https://caniuse.com/webp) puts it at 9
 
 So automatically try AVIF, then WebP, then JPEG.
 
-If you're using in plain HTML, use the [picture element](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/picture#the_type_attribute).
+If you're using them in plain HTML, use the [picture element](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/picture#the_type_attribute).
 
 If you're loading them with JavaScript, the best way I found is to rely on
 [Image's onerror](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/img#image_loading_errors),
@@ -47,7 +47,7 @@ Example:
 ```javascript
 const QuranPagesRoot = 'https://www.noureddin.dev/quran-pages/2/'
 
-const PageFormats = [
+const QuranPagesFormats = [
    { ext:'.avif', dir:QuranPagesRoot+'pages/776x1053-avif/' },
    { ext:'.webp', dir:QuranPagesRoot+'pages/776x1053-webp/' },
    { ext:'.jpg',  dir:'https://www.islamicbook.ws/2/' },
@@ -57,43 +57,51 @@ const PageFormats = [
 let page_fmt_idx = 0
 
 function next_format () {
-  if (page_fmt_idx >= PageFormats.length-1) { return false }
+  if (page_fmt_idx >= QuranPagesFormats.length-1) { return false }
   page_fmt_idx += 1
   return true
 }
 
 function image_src (p) {
-   if (isNaN(p) || p < 1 || p > 604) {
-    throw `Invalid page number; expect a number between 1 and 604 inclusive; got '${p}'`
+  if (isNaN(p) || !Number.isInteger(p) || p < 1 || p > 604) {
+    throw `Invalid page number: expected a number between 1 and 604 inclusive; got '${p}'`
   }
-   const { ext, dir } = PageFormats[page_fmt_idx]
-   return p < 3 && ext === '.jpg'
-      ? QuranPagesRoot + 'pages/776x1053-jpeg/' + p + '.jpeg'
-      : dir + p + ext
+  //
+  const { ext, dir } = QuranPagesFormats[page_fmt_idx]
+  //
+  return p < 3 && ext === '.jpg'
+    ? QuranPagesRoot + 'pages/776x1053-jpeg/' + p + '.jpeg'
+    : dir + p + ext
 }
 
 // then:
 
 function get_page_with_callback (p, callback) {
-  if (isNaN(p) || p < 1 || p > 604) {
-    throw `Invalid page number; expect a number between 1 and 604 inclusive; got '${p}'`
+  if (isNaN(p) || !Number.isInteger(p) || p < 1 || p > 604) {
+    throw `Invalid page number: expected a number between 1 and 604 inclusive; got '${p}'`
   }
-  const page = new Image(W, H)
+  //
+  const page = new Image()
   if (callback) { page.onload = (ev) => callback(page) }
+  //
   page.onerror = () => {
     if (next_format()) { page.src = image_src(p) }
   }
+  //
   page.src = image_src(p)
-  return page
+  return page  // the return value should not be used; rely on the callback instead
 }
 
-// and if you prefer async/await or promises:
+// and if you prefer promises or async/await:
 
-async function get_page (p) {
-  return await new Promise((resolve, reject) => {
+function get_page (p) {
+  return new Promise((resolve, reject) => {
     get_page_with_callback(p, (page) => resolve(page))
   })
 }
+
+// example with promises:
+get_page(1).then((img) => document.body.append(img))
 ```
 
 
