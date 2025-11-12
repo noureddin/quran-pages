@@ -107,7 +107,7 @@ goterror() { echo -n E >> "$t"; [ -n "$1" ] && rm -rf "$1"; }
 
 # uncomment any of the following
 
-# loop _get  4  # download the original JPG images (and fix the dimensions of the first two pages)
+loop _get  4  # download the original JPG images (and fix the dimensions of the first two pages)
 
 # loop _bw  $N  # covert the downloaded JPG images into 1-bit black-and-white (not grayscale) images
 

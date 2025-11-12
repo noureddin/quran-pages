@@ -28,6 +28,13 @@ thus a simple rectangle is almost always enough to perfectly contain a word.
 
 - `2/pages/776x1053-avif/`: all the pages' images in AVIF format, which is around 37% the size of the original JPEG images.
 
+- `2/pages/776x1053-*/empty-*.*`: two empty pages: one odd and even.
+Available under the names `empty-odd.jpeg` (or `.webp` or `.avif`),
+and `empty-even.jpeg` (or `.webp` or `.avif`).
+Also, for convenience, they are available as the numbered pages 605 and 606,
+so `605.jpeg` is the same file as `empty-odd.jpeg`,
+and `606.jpeg` is the same as `empty-even.jpeg`.
+
 ### Fail safe!
 
 AVIF has good support in the latest browsers, but many browsers, applications, and web sites (even GitHub!) don't support it.
