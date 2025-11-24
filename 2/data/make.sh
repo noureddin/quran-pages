@@ -10,11 +10,23 @@ if [ $# -gt 0 ] && [ "$1" == "-f" ] || [ "$1" == "-B" ]; then
   force=true
 fi
 
+t=false  # if both stdin & stdout are an interactive terminal
+if [ -t 0 ] && [ -t 1 ]; then t=true; fi
+rgbprintf() {
+  local r=$1; shift
+  local g=$1; shift
+  local b=$1; shift
+  local c=$[ 16 + 36*(r % 6) + 6*(g % 6) + (b % 6) ]
+  local fmt="$1"; shift
+  $t && fmt="\e[38;5;${c}m$fmt\e[m"
+  printf "$fmt" "$@"
+}
+
 compress() {
   if $force || [ "$1" -nt "$1.zst" ]; then
-    printf "Compressing %s... " "$1"
+    rgbprintf 5 3 2 "↕ Compressing %s... " "$1"
     < "$1" tr -d $' \n' | zstd -19 > "$1.zst"
-    printf "done\n"
+    rgbprintf 2 5 2 "%s\n" "done ✓"
   fi
 }
 
@@ -28,6 +40,8 @@ compress lines.json
 compress ayat.json
 
 compress lineends.json
+
+compress suarayat.json
 
 compress pauses.json
 
@@ -46,7 +60,7 @@ fi
 
 if ! $needed; then exit; fi
 
-printf "Making allmeta.json... "
+rgbprintf 1 5 5 "→ Writing allmeta.json... "
 
 {
   printf '{ "%s":%d\n, "%s":%d\n' width 776 height 1053
@@ -55,6 +69,8 @@ printf "Making allmeta.json... "
   done
   printf '}'
 } > allmeta.json
+
+rgbprintf 2 5 2 "%s\n" "done ✓"
 
 compress allmeta.json
 

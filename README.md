@@ -121,7 +121,6 @@ get_page(1).then((img) => document.body.append(img))
   All dimensions are to relative to the 776×1053 page.
 
   It's also available compressed in `2/data/words.json.zst`.
-  (I personally use [fzstd](https://github.com/101arrowz/fzstd) on the Web.)
 
 - `2/data/lineends.json` (notice the two `e`s): a JSON file whose root element is a 604-element array representing the pages,
   each element is an array of "lines" in the page,
@@ -158,6 +157,10 @@ get_page(1).then((img) => document.body.append(img))
   Please read [morepauses.description](2/morepauses.description) for info and details.
 
   It's also available compressed in `2/data/morepauses.json.zst`.
+
+- `2/data/suarayat.json`: a JSON file whose root element is a 114-element array representing the suar,
+  each element is a list of tuples of `p` (1-based page number) and `w` (0-based word index)
+  for the first word of each ayah of the sura.
 
 ## Included metadata and related scripts
 
@@ -231,6 +234,130 @@ These all are tiny files. You can embed the files you need, or fetch the combine
   They need `jq` to be installed.
 
 I may later add the scripts I created to help me create the words/ayat/pauses data.
+
+### Examples of usage
+
+Using promises/await:
+
+```javascript
+const meta = await fetch('https://www.noureddin.dev/quran-pages/2/data/allmeta.json')
+  .then((res) => res.ok ? res.arrayBuffer() : null)
+  .then((buf) => JSON.parse( (new TextDecoder).decode( new Uint8Array(buf) ) ) )
+```
+
+Using callbacks:
+
+```javascript
+let meta
+
+function start () {
+  // use meta here
+  console.log('main logic', meta)
+}
+
+loadMeta((obj) => { meta = obj; start() })
+
+function loadMeta (callback) {
+  fetch('https://www.noureddin.dev/quran-pages/2/data/allmeta.json')
+    .then((res) => res.ok ? res.arrayBuffer() : null)
+    .then((buf) => callback( JSON.parse( (new TextDecoder).decode( new Uint8Array(buf) ) ) ) )
+}
+```
+
+But you really should fetch the Zstd-compressed files instead. Examples using [fzstd](https://github.com/101arrowz/fzstd):
+
+HTML:
+
+```html
+<!-- Either --><script src="https://unpkg.com/fzstd@0.1.1"></script>
+<!-- OR --><script src="https://cdn.jsdelivr.net/npm/fzstd@0.1.1/umd/index.js"></script>
+<!-- OR host it on your server; it's a ~8K file. -->
+```
+
+Callback-based JS code:
+
+```javascript
+const QuranPagesData = 'https://www.noureddin.dev/quran-pages/2/data/'
+
+function unzstd (path, callback) {
+  return fetch(path)
+    .then((res) => res.ok ? res.arrayBuffer() : null)
+    .then((buf) => {
+      callback( (new TextDecoder).decode( fzstd.decompress(new Uint8Array(buf)) ) )
+    })
+}
+
+let res = {}
+let resourcesLoaded
+
+function loadResources (callback) {
+  if (resourcesLoaded) { callback(); return }
+  Promise.all([
+      unzstd(QuranPagesData + 'words.json.zst',      (json) => { res.words        = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'lineends.json.zst',   (json) => { res.lineends     = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'suarayat.json.zst',   (json) => { res.suarayat     = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'ayat.json.zst',       (json) => { res.ayat         = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'pauses.json.zst',     (json) => { res.pauses       = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'morepauses.json.zst', (json) => { res.morepauses   = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'allmeta.json.zst',    (json) => { Object.assign(res, JSON.parse(json)) }),
+  ]).then(() => {
+    resourcesLoaded = true
+    callback()
+  })
+}
+
+// main logic
+
+loadResources(() => {
+  console.log('loaded; we have', res.words.length, 'pages')
+})
+```
+
+Pure promise-based JS code:
+
+```javascript
+const QuranPagesData = 'https://www.noureddin.dev/quran-pages/2/data/'
+
+function unzstd (path) {
+  return fetch(path)
+    .then((res) => res.ok ? res.arrayBuffer() : null)
+    .then((buf) => (new TextDecoder).decode( fzstd.decompress(new Uint8Array(buf)) ) )
+}
+
+let res = {}
+let resourcesLoaded
+
+function loadResources () {
+  if (resourcesLoaded) { return Promise.resolve() }  // return an immediately-resolvable promise
+  return Promise.all([
+      unzstd(QuranPagesData + 'words.json.zst')      .then((json) => { res.words        = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'lineends.json.zst')   .then((json) => { res.lineends     = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'suarayat.json.zst')   .then((json) => { res.suarayat     = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'ayat.json.zst')       .then((json) => { res.ayat         = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'pauses.json.zst')     .then((json) => { res.pauses       = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'morepauses.json.zst') .then((json) => { res.morepauses   = JSON.parse(json) }),
+      unzstd(QuranPagesData + 'allmeta.json.zst')    .then((json) => { Object.assign(res, JSON.parse(json)) }),
+  ]).then(() => {
+    resourcesLoaded = true
+  })
+}
+
+// main logic
+
+loadResources().then(() => {
+  console.log('loaded; we have', res.words.length, 'pages')
+})
+
+// or
+
+(async () => {
+
+  // inside an async function
+  await loadResources()
+  console.log('loaded; we have', res.words.length, 'pages')
+
+})()
+```
 
 ## License
 

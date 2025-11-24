@@ -16,12 +16,15 @@ md() { mkdir -p "$1" && cd "$1"; }
 
 _get() {  # download mosħaf pages
   (md 776x1053
+  opt=""
+  [ $1 -eq 1 ] && opt='-crop 776x1053+25+25'
+  [ $1 -eq 2 ] && opt='-crop 776x1053+36+25'
   [ -s "$1.jpg" ] || rm -f "$1.jpg"  # if empty
   [ -e "$1.jpg" ] || {
     if wget -U Mozilla/5.0 -q "$HOST/$1.jpg"; then
       if [ $1 -eq 1 ] || [ $1 -eq 2 ]; then
         mv $1.jpg _$1.jpg &&
-        convert _$1.jpg -crop 776x1053+25+25 $1.jpg &&
+        convert _$1.jpg $opt $1.jpg &&
         rm -f _$1.jpg ||
           goterror "$1.jpg"
       fi

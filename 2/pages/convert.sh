@@ -132,7 +132,7 @@ goterror() { echo -n E >> "$t"; [ -n "$1" ] && rm -rf "$1"; }
 
 # loop _light_jpeg $N
 
-loop _light_webp $N
+# loop _light_webp $N
 
 # loop _light_avif $N
 
