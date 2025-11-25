@@ -111,7 +111,7 @@ my @rules = (
       for my $i (0..$#$_p) {
         my $w = $_p->[$i];
         # first word in page, or first word in a line
-        if (!$last || $w->[1] > $last->[1] + $last->[3] - 10) {
+        if (!$last || $w->[1] > $last->[1] + $last->[3] - 15) {
           push @page, $i-1 if $last;
         }
         # any other word, including last word in page

@@ -35,8 +35,6 @@ compress() {
 
 compress words.json
 
-compress lines.json
-
 compress ayat.json
 
 compress lineends.json
