@@ -20,7 +20,7 @@ sub slurp(_) { local $/; open my $f, '<', $_[0] or die "Couldn't open file '$_[0
 sub eject { my ($p,$t) = @_; open my $f, '>', $p or die "Couldn't open file '$p' for writing: $!\n"; print { $f } $t; }
 
 sub read_json { my ($filepath) = @_; return $JSON->decode(slurp $filepath) }
-sub write_json { my ($filepath, $content) = @_; eject $filepath, $JSON->encode($content) }
+sub write_json { my ($filepath, $content, $fmt) = @_; eject $filepath, ($fmt // sub { $_[0] })->($JSON->encode($content)) }
 
 $|++;  # autoflush stdout for printing progress messages
 
