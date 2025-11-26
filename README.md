@@ -183,8 +183,11 @@ These all are tiny files. You can embed the files you need, or fetch the combine
 - `2/data/marginwords.json`: a JSON file whose root element is an object
   whose keys are 1-based page numbers that have white-background words in the margin as hints for reciting.
   The values are an object,
-  whose `idx` key has the index of the corresponding word in `2/data/words.json` in the page,
-  and whose `dim` key has a dimension tuple exactly like `2/data/words.json`.
+  whose `index` key has the index of the corresponding word in `2/data/words.json` in the page,
+  and whose `inner` and `outer` keys have dimension tuples exactly like `2/data/words.json`,
+  where `inner` is the rectangle to be erased (painted over by the margin color),
+  and `outer` is the slightly bigger rectangle that includes the border,
+  to be shown (copied from the original image of the page).
 
   Note: "words" have a white background and are inside the page,
   "margins" have a yellowish background and are outside the page (and there is only one margin in a given page),
