@@ -39,28 +39,30 @@ sub newer_than {
 
 my %in;
 
+sub numberof { my ($name, $keep) = @_;
+  return { out => "numberof$name", in => $name, do => sub {
+    my $num = [map { scalar @$_ } @{$in{$name}}];
+    if ($keep) { $in{"numberof$name"} = $num };
+    write_json "numberof$name.json", $num, sub { $_[0]
+      =~ s/(?:[\[,][0-9]+){20}/$&\n/gr
+      =~ s/(?<![0-9])[0-9](?![0-9])/  $&/gr
+      =~ s/(?<![0-9])[0-9]{2}(?![0-9])/ $&/gr
+      =~ s/\]/ $&/gr
+    };
+  } }
+}
+
 my @rules = (
 
 ################################################################################
 
-{ out => 'numberofwords', in => 'words',
-  do => sub {
-    $in{numberofwords} = [map { scalar @$_ } @{$in{words}}];  # it's needed later
-    write_json "numberofwords.json", $in{numberofwords};
-  } },
+numberof('ayat'),
+
+numberof('words', 1),  # store it in %in, because it's needed later
 
 ################################################################################
 
-{ out => 'numberofayat', in => 'ayat',
-  do => sub {
-    write_json "numberofayat.json", [map { scalar @$_ } @{$in{ayat}}];
-  } },
-
-################################################################################
-
-{ out => 'suarayat',
-  in => 'ayat suarstarts',
-  do => sub {
+{ out => 'suarayat', in => 'ayat suarstarts', do => sub {
     my @suarstart_by_page;
 
     for my $start (@{$in{suarstarts}}) {
@@ -90,7 +92,14 @@ my @rules = (
       # printf "\n";
     }
 
-    write_json 'suarayat.json', \@sa;
+    write_json 'suarayat.json', \@sa, sub { $_[0]
+      =~ s/\]\](?=,)/]]\n/gr
+      =~ s/(\[([0-9]+),[0-9]+\])(?=,\[([0-9]+),)/$2 ne $3 ? "$1\n  " : "$1"/gre
+      =~ s/([,\[])(?=\[)/$1 /gr
+      =~ s/(?<![0-9])[0-9]{1}(?![0-9])/  $&/gr
+      =~ s/(?<![0-9])[0-9]{2}(?![0-9])/ $&/gr
+      =~ s/\](?=\])/] /gr
+    };
   } },
 
 ################################################################################
@@ -100,8 +109,7 @@ my @rules = (
 # lineends.json is an array of pages, where each page is an array of words,
 #   each of which is the last word in its line.
 
-{ out => 'lineends', in => 'words',
-  do => sub {
+{ out => 'lineends', in => 'words', do => sub {
     my @lineends;
 
     for my $_p (@{$in{words}}) {
@@ -122,7 +130,13 @@ my @rules = (
       push @lineends, [@page];  # all the lines of the current page
     }
 
-    write_json 'lineends.json', \@lineends;
+    write_json 'lineends.json', \@lineends, sub { $_[0]
+      =~ s/[\[\]]/ $&/gr =~ s/^ //gr
+      =~ s/, \[/\n, [/gr
+      =~ s/(?<![0-9])[0-9]{1}(?![0-9])/   $&/gr
+      =~ s/(?<![0-9])[0-9]{2}(?![0-9])/  $&/gr
+      =~ s/(?<![0-9])[0-9]{3}(?![0-9])/ $&/gr
+    };
   } },
 
 ################################################################################
@@ -130,8 +144,7 @@ my @rules = (
 # Note: numberofwords is an output, but because @rules is ordered,
 #   numberofwords must be computed or read at this point.
 
-{ out => 'headers basmalaat', in => 'suarstarts numberofwords',
-  do => sub {
+{ out => 'headers basmalaat', in => 'suarstarts numberofwords', do => sub {
     # mapping each page to the "words" that are actually "headers" (suar names) or basmalaat.
 
     my @headers   = map { [] } 1..604;
@@ -164,8 +177,26 @@ my @rules = (
       }
     }
 
-    write_json 'headers.json',   \@headers;
-    write_json 'basmalaat.json', \@basmalaat;
+    my $residue;
+    my $fmt = sub { $_[0]
+      =~ s/(?:[\[,][^\]]+]){20}/$&\n/gr
+      =~ s/\[\[/[ [/gr
+      =~ s/\]\]/] ]/gr
+      =~ s/,\[/, [/gr
+      =~ s{([,\[]) \[(.*?)\]}{
+        my $padlength = 4;
+        my $needed = length $2;
+        if (defined $residue) { $padlength -= $residue; $residue = undef }
+        $padlength -= $needed;
+        if ($padlength < 0) { $residue = -$padlength; $padlength = 0 }
+        $1 . " "x$padlength . "[$2]"
+      }gre
+      =~ s/\Z/$residue = undef; ""/gre
+      # =~ s/, \[(.*?)\]/", [$1]" . " "x(7 - length $1)/gre
+    };
+
+    write_json 'headers.json',   \@headers,   $fmt;
+    write_json 'basmalaat.json', \@basmalaat, $fmt;
   } },
 );
 
