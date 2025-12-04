@@ -6,7 +6,7 @@ if ! zstd --version &>/dev/null; then
 fi
 
 force=false
-if [ $# -gt 0 ] && [ "$1" == "-f" ] || [ "$1" == "-B" ]; then
+if [ "$1" == "-f" ] || [ "$1" == "-B" ]; then
   force=true
 fi
 
