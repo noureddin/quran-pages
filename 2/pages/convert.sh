@@ -17,33 +17,33 @@ fi
 
 md() { mkdir -p "$1" && cd "$1"; }
 
-___jpeg() {  # remove metadata and compress slightly (images become about 90% in size)
+___jpg() {  # remove metadata and compress slightly (images become about 90% in size)
   (md "$3"
-  [ -s "$1.jpeg" ] || rm -f "$1.jpeg"  # if empty
-  [ -e "$1.jpeg" ] || {
-    if   [ "$1" = "605" ]; then ___jpeg "empty-odd"  "$2" "."; return
-    elif [ "$1" = "606" ]; then ___jpeg "empty-even" "$2" "."; return
+  [ -s "$1.jpg" ] || rm -f "$1.jpg"  # if empty
+  [ -e "$1.jpg" ] || {
+    if   [ "$1" = "605" ]; then ___jpg "empty-odd"  "$2" "."; return
+    elif [ "$1" = "606" ]; then ___jpg "empty-even" "$2" "."; return
     fi
     # remove metadata, except the color profile (which is only 4KB, but might cause color issues?)
     # then compress the first two page twice (only twice to not alter the color quality noticeably)
     # but the rest don't compress better, thus kept. then provide a numeric name for the empty pages.
-    exiftool -q -all= --ICC_Profile:all "$2$1.jpg" -o "$1...jpeg" && {
+    exiftool -q -all= --ICC_Profile:all "$2$1.jpg" -o "$1...jpg" && {
       case "$1" in
       1|2)
-        convert "$1...jpeg" "$1..jpeg" &&
-        convert "$1..jpeg" "$1.jpeg" ;;
+        convert "$1...jpg" "$1..jpg" &&
+        convert "$1..jpg" "$1.jpg" ;;
       empty-odd)
-        mv "$1...jpeg" "$1.jpeg" &&
-        { ln "$1.jpeg" "605.jpeg" || cp -f "$1.jpeg" "605.jpeg"; } ;;
+        mv "$1...jpg" "$1.jpg" &&
+        { ln "$1.jpg" "605.jpg" || cp -f "$1.jpg" "605.jpg"; } ;;
       empty-even)
-        mv "$1...jpeg" "$1.jpeg" &&
-        { ln "$1.jpeg" "606.jpeg" || cp -f "$1.jpeg" "606.jpeg"; } ;;
+        mv "$1...jpg" "$1.jpg" &&
+        { ln "$1.jpg" "606.jpg" || cp -f "$1.jpg" "606.jpg"; } ;;
       *)
-        mv "$1...jpeg" "$1.jpeg" ;;
+        mv "$1...jpg" "$1.jpg" ;;
       esac
     }; } &&
-    rm -f "$1...jpeg" "$1..jpeg" ||
-      goterror "$1.jpeg"
+    rm -f "$1...jpg" "$1..jpg" ||
+      goterror "$1.jpg"
   echo -n "$1"/;)  # auto `cd -` because of the subshell
 }
 
@@ -96,7 +96,7 @@ ___avif() {  # remove metadata and compress to avif (images become about 37% in 
   echo -n "$1"/;)  # auto `cd -` because of the subshell
 }
 
-_light_jpeg() { ___jpeg "$1" "../776x1053/" "776x1053-jpeg"; }
+_light_jpg() { ___jpg "$1" "../776x1053/" "776x1053-jpg"; }
 
 _light_webp() { ___webp "$1" "../776x1053/" "776x1053-webp"; }
 
@@ -130,7 +130,7 @@ goterror() { echo -n E >> "$t"; [ -n "$1" ] && rm -rf "$1"; }
 
 # then uncomment any of the following
 
-# loop _light_jpeg $N
+# loop _light_jpg $N
 
 # loop _light_webp $N
 
