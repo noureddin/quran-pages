@@ -1,6 +1,12 @@
 # Quran Pages
 
-Images of pages are from: <https://www.islamicbook.ws/>. Directory names follow IslamicBook names.
+These data is made for Irsaa: [noureddin.dev/irsaa](https://www.noureddin.dev/irsaa/).
+([Source code](https://github.com/noureddin/irsaa/).)
+But can be used in any other application.
+
+.
+
+The images of pages are from: <https://www.islamicbook.ws/>. Directory names follow IslamicBook names.
 
 IslamicBook has the images as JPG. This repository contains them in a compressed WebP format (most pages become about 50% in size).
 Feel free to you either. (But note if you use the IslamicBook's images, the images of pages 1 & 2 have slightly different dimensions;
@@ -124,7 +130,7 @@ get_page(1).then((img) => document.body.append(img))
 
   All word rectangles are guaranteed to never overlap (except for exactly one pixel, which is okay). If a word ever overlaps with another, this is an issue I love to know about to fix it.
 
-  **Note:** These words are considered a single word in this data:
+  **Note:** These words are considered a single word in this project:
 
     - Every `بعد ما`.
     - The single word `إل ياسين` (in [37:130](https://www.noureddin.dev/recite/?preview&37/130)); it's written disconnected to accomodate other readings, but it's one word in Hafs-an-’Āṣem and you can never pause in the middle of it in this reading.
