@@ -13,11 +13,11 @@ thus a simple rectangle is almost always enough to perfectly contain a word.
 ## Included images and related scripts
 
 - `2/pages/getpages.sh`: a Bash script using ImageMagick and Wget to download the page images from IslamicBook,
-  fix the dimensions of the first pages, and possibly make other versions of the page images (cropped and scaled down, or double (facing) pages).
+  fix the dimensions of the first two pages, and possibly make other versions of the page images (cropped and scaled down, or double (facing) pages).
 
 - `2/pages/convert.sh`: a Bash script using ImageMagick and `exiftool` to convert the JPG page images.
 
-- `2/pages/776x1053-jpeg/`: only `1.jpeg` and `2.jpeg` (notice the `e` in `jpeg`).
+- `2/pages/776x1053-jpg/`: only `1.jpg` and `2.jpg`.
   These two are included because the original have different dimensions.
   The original JPGs are not included; fetch them from IslamicBook, or use `getpages.sh` to download the originals
   (then you can run `convert.sh` with the `loop _light_jpeg $N` uncommented to compress them slightly).
@@ -29,11 +29,11 @@ thus a simple rectangle is almost always enough to perfectly contain a word.
 - `2/pages/776x1053-avif/`: all the pages' images in AVIF format, which is around 37% the size of the original JPEG images.
 
 - `2/pages/776x1053-*/empty-*.*`: two empty pages: one odd and even.
-Available under the names `empty-odd.jpeg` (or `.webp` or `.avif`),
-and `empty-even.jpeg` (or `.webp` or `.avif`).
-Also, for convenience, they are available as the numbered pages 605 and 606,
-so `605.jpeg` is the same file as `empty-odd.jpeg`,
-and `606.jpeg` is the same as `empty-even.jpeg`.
+Available under the names `empty-odd.jpeg` (and `.webp` and `.avif`),
+and `empty-even.jpeg` (and `.webp` and `.avif`).
+Also, for convenience, they are available as the fake numbered pages 605 and 606,
+so `605.jpg` is the same file as `empty-odd.jpg`,
+and `606.jpg` is the same file as `empty-even.jpg`.
 
 ### Fail safe!
 
@@ -57,7 +57,7 @@ const QuranPagesRoot = 'https://www.noureddin.dev/quran-pages/2/'
 const QuranPagesFormats = [
    { ext:'.avif', dir:QuranPagesRoot+'pages/776x1053-avif/' },
    { ext:'.webp', dir:QuranPagesRoot+'pages/776x1053-webp/' },
-   { ext:'.jpg',  dir:'https://www.islamicbook.ws/2/' },
+   { ext:'.jpg',  dir:'https://www.islamicbook.ws/2/', first:QuranPagesRoot+'pages/776x1053-jpg/' },
 ]
 // Note: dir: ends in slash, and ext: starts with a dot
 
@@ -74,10 +74,10 @@ function image_src (p) {
     throw `Invalid page number: expected a number between 1 and 604 inclusive; got '${p}'`
   }
   //
-  const { ext, dir } = QuranPagesFormats[page_fmt_idx]
+  const { ext, dir, first } = QuranPagesFormats[page_fmt_idx]
   //
-  return p < 3 && ext === '.jpg'
-    ? QuranPagesRoot + 'pages/776x1053-jpeg/' + p + '.jpeg'
+  return p < 3 && first
+    ? first + p + ext
     : dir + p + ext
 }
 
@@ -115,15 +115,23 @@ get_page(1).then((img) => document.body.append(img))
 ## Included primary data
 
 - `2/data/words.json`: a JSON file whose root element is a 604-element array representing the pages,
-  each element is an array of words in a page,
+  each element is an array of the words in a page,
   each word is a 4-tuple (array) containing the `x` (left) of the word, the `y` (top), the width, and height.
 
   All dimensions are to relative to the 776×1053 page.
 
   It's also available compressed in `2/data/words.json.zst`.
 
+  All word rectangles are guaranteed to never overlap (except for exactly one pixel, which is okay). If a word ever overlaps with another, this is an issue I love to know about to fix it.
+
+  **Note:** These words are considered a single word in this data:
+
+    - Every `بعد ما`.
+    - The single word `إل ياسين` (in [37:130](https://www.noureddin.dev/recite/?preview&37/130)); it's written disconnected to accomodate other readings, but it's one word in Hafs-an-’Āṣem and you can never pause in the middle of it in this reading.
+    - The disconnected preposition in `مال` (in [4:78](https://www.noureddin.dev/recite/?preview&4/78), [18:49](https://www.noureddin.dev/recite/?preview&18/49), [25:7](https://www.noureddin.dev/recite/?preview&25/7), [70:36](https://www.noureddin.dev/recite/?preview&70/36)); you can pause at it in our reading, but not start with the following word.
+
 - `2/data/lineends.json` (notice the two `e`s): a JSON file whose root element is a 604-element array representing the pages,
-  each element is an array of "lines" in the page,
+  each element is an array of the "lines" in the page,
   each "line" is the index of the word that ends that line.
 
   For example, `lineends[0]` is `[0, 2, 8, ...]`, that means
@@ -134,7 +142,7 @@ get_page(1).then((img) => document.body.append(img))
   It's also available compressed in `2/data/lineends.json.zst`.
 
 - `2/data/ayat.json`: a JSON file whose root element is a 604-element array representing the pages,
-  each element is an array of ayat in a page,
+  each element is an array of the ayat in a page,
   each ayah is the word index of its number-mark into the page.
 
   For example, the first page is `[ 2, 7, ...]`, meaning that the first ayah
@@ -145,7 +153,7 @@ get_page(1).then((img) => document.body.append(img))
   It's also available compressed in `2/data/ayat.json.zst`.
 
 - `2/data/pauses.json`: a JSON file whose root element is a 604-element array representing the pages,
-  each element is an array of pauses (waqfs and/or gaps) in a page,
+  each element is an array of the pauses (waqfs and/or gaps) in a page,
   each pause is the word index the word immediately preceding it.
 
   It's also available compressed in `2/data/pauses.json.zst`.
@@ -161,6 +169,8 @@ get_page(1).then((img) => document.body.append(img))
 - `2/data/suarayat.json`: a JSON file whose root element is a 114-element array representing the suar,
   each element is a list of tuples of `p` (1-based page number) and `w` (0-based word index)
   for the first word of each ayah of the sura.
+
+  It's also available compressed in `2/data/suarayat.json.zst`.
 
 ## Included metadata and related scripts
 
@@ -366,6 +376,6 @@ loadResources().then(() => {
 
 The images are the copyright of their original authors at Dar-ul-Ma‘refa (<https://www.easyquran.com/>). Any derivatives I present here are still their copyright.
 
-All the code and data I present here (except images) are my own work and are distributed under the terms of Creative Commons Zero (equivalent to Public Domain).
+All the code and data I present here (except the images) are my own work and are distributed under the terms of Creative Commons Zero (equivalent to Public Domain).
 
-Copyright (c) 2025 Noureddin.
+Copyright (c) 2025-2026 Noureddin.
