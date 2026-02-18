@@ -132,7 +132,7 @@ get_page(1).then((img) => document.body.append(img))
 
   **Note:** These words are considered a single word in this project:
 
-    - Every `بعد ما`.
+    - Every `بعد ما` not preceded by `من` (only 3 occurrences).
     - The single word `إل ياسين` (in [37:130](https://www.noureddin.dev/recite/?preview&37/130)); it's written disconnected to accomodate other readings, but it's one word in Hafs-an-’Āṣem and you can never pause in the middle of it in this reading.
     - The disconnected preposition in `مال` (in [4:78](https://www.noureddin.dev/recite/?preview&4/78), [18:49](https://www.noureddin.dev/recite/?preview&18/49), [25:7](https://www.noureddin.dev/recite/?preview&25/7), [70:36](https://www.noureddin.dev/recite/?preview&70/36)); you can pause at it in our reading, but not start with the following word.
 
